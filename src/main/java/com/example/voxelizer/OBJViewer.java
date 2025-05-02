@@ -1,7 +1,7 @@
 package com.example.voxelizer;
 
-import com.example.voxelizer.OBJImporter;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
@@ -13,17 +13,30 @@ import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 
 public class OBJViewer extends Application {
-    public static OBJImporter importer;
+    private static OBJViewer instance;
+    private static OBJImporter importer;
+    private static Stage primaryStage;
+    private static boolean isInitialized = false;
 
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage stage) {
+        instance = this;
+        primaryStage = stage;
+        displayModel();
+    }
+
+    private void displayModel() {
+        if (importer == null || importer.vertices.isEmpty()) {
+            return;
+        }
+
         TriangleMesh mesh = new TriangleMesh();
 
         for (OBJImporter.Vector3 v : importer.vertices) {
             mesh.getPoints().addAll(v.x, v.y, v.z);
         }
 
-        mesh.getTexCoords().addAll(0, 0); // dummy texture coordinates
+        mesh.getTexCoords().addAll(0, 0);
 
         for (OBJImporter.Face face : importer.faces) {
             if (face.vertexIndices.length == 3) {
@@ -60,7 +73,22 @@ public class OBJViewer extends Application {
 
     public static void launchViewer(OBJImporter loadedModel) {
         importer = loadedModel;
-        launch();
+        if (!isInitialized) {
+            isInitialized = true;
+            launch();
+        } else {
+            Platform.runLater(() -> {
+                if (primaryStage != null && instance != null) {
+                    instance.displayModel();
+                }
+            });
+        }
     }
 
+    @Override
+    public void stop() {
+        isInitialized = false;
+        instance = null;
+        primaryStage = null;
+    }
 }

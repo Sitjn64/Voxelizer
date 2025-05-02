@@ -2,14 +2,20 @@ package com.example.voxelizer;
 
 import javafx.geometry.Point3D;
 import javafx.scene.shape.Box;
-import java.util.*;
-import javafx.scene.Group;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class OBJConverter {
+    private float resolution;
+    private float modelScale;
+    private Point3D modelCenter;
+
     public static class Voxel {
         private final float x, y, z;
         private final float size;
         private Box box;
+        private static float sizeMultiplier = 1.0f;
 
         public Voxel(float x, float y, float z, float size) {
             this.x = x;
@@ -20,14 +26,10 @@ public class OBJConverter {
 
         public Box getBox() {
             if (box == null) {
-                box = new Box(size, size, size);
+                box = new Box(size * sizeMultiplier, size * sizeMultiplier, size * sizeMultiplier);
                 box.setTranslateX(x);
                 box.setTranslateY(y);
                 box.setTranslateZ(z);
-            }
-            // Remove the box from its current parent if it has one
-            if (box.getParent() != null) {
-                ((Group) box.getParent()).getChildren().remove(box);
             }
             return box;
         }
@@ -36,33 +38,26 @@ public class OBJConverter {
             return y;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Voxel)) return false;
-            Voxel voxel = (Voxel) o;
-            return Float.compare(voxel.x, x) == 0 && 
-                   Float.compare(voxel.y, y) == 0 && 
-                   Float.compare(voxel.z, z) == 0;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(x, y, z);
+        public static void setGlobalSizeMultiplier(float multiplier) {
+            sizeMultiplier = multiplier;
         }
     }
 
-    private final Set<Voxel> voxels = new HashSet<>();
-    private float modelScale;
-    private Point3D modelCenter;
-    private int resolution;
-
     public List<Voxel> convertToVoxels(OBJImporter model, int resolution) {
         this.resolution = resolution;
-        voxels.clear();
         calculateModelBounds(model);
-        voxelizeModel(model);
-        return new ArrayList<>(voxels);
+        
+        List<Voxel> voxels = new ArrayList<>();
+        float voxelSize = modelScale;
+
+        // Create voxel grid
+        for (OBJImporter.Face face : model.faces) {
+            if (face.vertexIndices.length >= 3) {
+                voxelizeFace(face, model.vertices, voxelSize, voxels);
+            }
+        }
+
+        return voxels;
     }
 
     private void calculateModelBounds(OBJImporter model) {
@@ -79,8 +74,7 @@ public class OBJConverter {
         }
 
         float maxDimension = Math.max(Math.max(maxX - minX, maxY - minY), maxZ - minZ);
-        // Increase the scale factor (e.g., multiply by 2 or 3 for larger voxels)
-        modelScale = (maxDimension / resolution) * 3; 
+        modelScale = maxDimension / resolution;
         modelCenter = new Point3D(
             (minX + maxX) / 2,
             (minY + maxY) / 2,
@@ -88,85 +82,77 @@ public class OBJConverter {
         );
     }
 
-    private void voxelizeModel(OBJImporter model) {
-        for (OBJImporter.Face face : model.faces) {
-            if (face.vertexIndices.length >= 3) {
-                voxelizeTriangle(
-                    model.vertices.get(face.vertexIndices[0]),
-                    model.vertices.get(face.vertexIndices[1]),
-                    model.vertices.get(face.vertexIndices[2])
-                );
-            }
-        }
-    }
+    private void voxelizeFace(OBJImporter.Face face, List<OBJImporter.Vector3> vertices, float voxelSize, List<Voxel> voxels) {
+        // Get vertices of the face
+        OBJImporter.Vector3 v1 = vertices.get(face.vertexIndices[0]);
+        OBJImporter.Vector3 v2 = vertices.get(face.vertexIndices[1]);
+        OBJImporter.Vector3 v3 = vertices.get(face.vertexIndices[2]);
 
-    private void voxelizeTriangle(OBJImporter.Vector3 v1, OBJImporter.Vector3 v2, OBJImporter.Vector3 v3) {
-        Point3D p1 = transformToVoxelSpace(v1);
-        Point3D p2 = transformToVoxelSpace(v2);
-        Point3D p3 = transformToVoxelSpace(v3);
+        // Calculate bounds of the face
+        float minX = Math.min(Math.min(v1.x, v2.x), v3.x);
+        float minY = Math.min(Math.min(v1.y, v2.y), v3.y);
+        float minZ = Math.min(Math.min(v1.z, v2.z), v3.z);
+        float maxX = Math.max(Math.max(v1.x, v2.x), v3.x);
+        float maxY = Math.max(Math.max(v1.y, v2.y), v3.y);
+        float maxZ = Math.max(Math.max(v1.z, v2.z), v3.z);
 
-        // Get bounds of triangle in voxel space
-        int minX = (int) Math.floor(Math.min(Math.min(p1.getX(), p2.getX()), p3.getX()));
-        int maxX = (int) Math.ceil(Math.max(Math.max(p1.getX(), p2.getX()), p3.getX()));
-        int minY = (int) Math.floor(Math.min(Math.min(p1.getY(), p2.getY()), p3.getY()));
-        int maxY = (int) Math.ceil(Math.max(Math.max(p1.getY(), p2.getY()), p3.getY()));
-        int minZ = (int) Math.floor(Math.min(Math.min(p1.getZ(), p2.getZ()), p3.getZ()));
-        int maxZ = (int) Math.ceil(Math.max(Math.max(p1.getZ(), p2.getZ()), p3.getZ()));
-
-        // Check each voxel in the bounds
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    Point3D voxelCenter = new Point3D(x + 0.5, y + 0.5, z + 0.5);
-                    if (isPointNearTriangle(voxelCenter, p1, p2, p3)) {
-                        // Convert voxel grid coordinates back to model space
-                        float modelX = (x - resolution/2) * modelScale + (float)modelCenter.getX();
-                        float modelY = (y - resolution/2) * modelScale + (float)modelCenter.getY();
-                        float modelZ = (z - resolution/2) * modelScale + (float)modelCenter.getZ();
-                        voxels.add(new Voxel(modelX, modelY, modelZ, modelScale));
+        // Create voxels for the face
+        for (float x = minX; x <= maxX; x += voxelSize) {
+            for (float y = minY; y <= maxY; y += voxelSize) {
+                for (float z = minZ; z <= maxZ; z += voxelSize) {
+                    Point3D point = new Point3D(x, y, z);
+                    if (isPointInTriangle(point, v1, v2, v3)) {
+                        voxels.add(new Voxel(x, y, z, voxelSize));
                     }
                 }
             }
         }
     }
 
-    private Point3D transformToVoxelSpace(OBJImporter.Vector3 v) {
-        return new Point3D(
-            (v.x - modelCenter.getX()) * modelScale + resolution/2,
-            (v.y - modelCenter.getY()) * modelScale + resolution/2,
-            (v.z - modelCenter.getZ()) * modelScale + resolution/2
-        );
-    }
+    private boolean isPointInTriangle(Point3D p, OBJImporter.Vector3 v1, OBJImporter.Vector3 v2, OBJImporter.Vector3 v3) {
+        // Simplified point-in-triangle test
+        Point3D a = new Point3D(v1.x, v1.y, v1.z);
+        Point3D b = new Point3D(v2.x, v2.y, v2.z);
+        Point3D c = new Point3D(v3.x, v3.y, v3.z);
 
-    private boolean isPointNearTriangle(Point3D point, Point3D v1, Point3D v2, Point3D v3) {
-        // Compute triangle normal
-        Point3D edge1 = v2.subtract(v1);
-        Point3D edge2 = v3.subtract(v1);
-        Point3D normal = edge1.crossProduct(edge2).normalize();
-        
-        // Distance from point to triangle plane
-        double distance = Math.abs(point.subtract(v1).dotProduct(normal));
-        
-        return distance < 1.0; // Using 1.0 as the voxel size
-    }
+        // Calculate barycentric coordinates
+        Point3D vec0 = b.subtract(a);
+        Point3D vec1 = c.subtract(a);
+        Point3D vec2 = p.subtract(a);
 
-    public List<Voxel> getLayerVoxels(List<Voxel> voxels, float layer) {
-        return voxels.stream()
-                .filter(v -> Math.abs(v.getY() - layer) < modelScale/2)
-                .toList();
+        double d00 = vec0.dotProduct(vec0);
+        double d01 = vec0.dotProduct(vec1);
+        double d11 = vec1.dotProduct(vec1);
+        double d20 = vec2.dotProduct(vec0);
+        double d21 = vec2.dotProduct(vec1);
+
+        double denom = d00 * d11 - d01 * d01;
+        if (denom == 0) return false;
+
+        double v = (d11 * d20 - d01 * d21) / denom;
+        double w = (d00 * d21 - d01 * d20) / denom;
+        double u = 1.0 - v - w;
+
+        return v >= 0 && w >= 0 && (v + w) <= 1;
     }
 
     public float getMinLayer(List<Voxel> voxels) {
         return voxels.stream()
                 .map(Voxel::getY)
-                .min(Float::compare)
+                .min(Float::compareTo)
                 .orElse(0f);
     }
 
     public float getMaxLayer(List<Voxel> voxels) {
         return voxels.stream()
                 .map(Voxel::getY)
-                .max(Float::compare)
+                .max(Float::compareTo)
                 .orElse(0f);
+    }
+
+    public List<Voxel> getLayerVoxels(List<Voxel> voxels, float layer) {
+        return voxels.stream()
+                .filter(v -> Math.abs(v.getY() - layer) < modelScale/2)
+                .collect(Collectors.toList());
     }
 }
