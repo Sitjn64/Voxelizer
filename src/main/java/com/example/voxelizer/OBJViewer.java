@@ -91,4 +91,3 @@ public class OBJViewer extends Application {
         instance = null;
         primaryStage = null;
     }
-}

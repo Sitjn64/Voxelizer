@@ -72,6 +72,7 @@ public class HelloController implements Initializable {
 		voxelScaleSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
 			OBJConverter.Voxel.setGlobalSizeMultiplier(newVal.floatValue());
 			if (voxels != null && !voxels.isEmpty()) {
+        
 				if (viewModeToggle.isSelected()) {
 					displayCurrentLayer();
 				} else {
@@ -315,4 +316,4 @@ public class HelloController implements Initializable {
 		this.importer = model;
 		displayModel();
 	}
-}
+

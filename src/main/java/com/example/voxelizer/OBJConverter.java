@@ -82,9 +82,11 @@ public class OBJConverter {
     }
 
     private void voxelizeFace(OBJImporter.Face face, List<OBJImporter.Vector3> vertices, float voxelSize, List<Voxel> voxels) {
+
         OBJImporter.Vector3 v1 = vertices.get(face.vertexIndices[0]);
         OBJImporter.Vector3 v2 = vertices.get(face.vertexIndices[1]);
         OBJImporter.Vector3 v3 = vertices.get(face.vertexIndices[2]);
+
 
         float minX = Math.min(Math.min(v1.x, v2.x), v3.x);
         float minY = Math.min(Math.min(v1.y, v2.y), v3.y);
@@ -92,6 +94,7 @@ public class OBJConverter {
         float maxX = Math.max(Math.max(v1.x, v2.x), v3.x);
         float maxY = Math.max(Math.max(v1.y, v2.y), v3.y);
         float maxZ = Math.max(Math.max(v1.z, v2.z), v3.z);
+
 
         for (float x = minX; x <= maxX; x += voxelSize) {
             for (float y = minY; y <= maxY; y += voxelSize) {
@@ -106,6 +109,7 @@ public class OBJConverter {
     }
 
     private boolean isPointInTriangle(Point3D p, OBJImporter.Vector3 v1, OBJImporter.Vector3 v2, OBJImporter.Vector3 v3) {
+
         Point3D a = new Point3D(v1.x, v1.y, v1.z);
         Point3D b = new Point3D(v2.x, v2.y, v2.z);
         Point3D c = new Point3D(v3.x, v3.y, v3.z);

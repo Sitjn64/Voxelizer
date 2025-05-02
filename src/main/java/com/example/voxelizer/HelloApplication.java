@@ -39,10 +39,12 @@ public class HelloApplication extends Application {
         }
 
         try {
+
             OBJImporter importer = new OBJImporter();
             importer.load(args[0]);
             System.out.println("Model loaded successfully!");
             importer.printSummary();
+
             initialModel = importer;
             launch(args);
         } catch (Exception e) {
