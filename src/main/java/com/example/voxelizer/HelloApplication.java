@@ -15,7 +15,6 @@ public class HelloApplication extends Application {
         Scene scene = new Scene(fxmlLoader.load());
         HelloController controller = fxmlLoader.getController();
         
-        // If we have an initial model, load it
         if (initialModel != null) {
             controller.loadModel(initialModel);
         }
@@ -40,18 +39,12 @@ public class HelloApplication extends Application {
         }
 
         try {
-            // Create and load the OBJ file
             OBJImporter importer = new OBJImporter();
             importer.load(args[0]);
-
-            // Print model information
             System.out.println("Model loaded successfully!");
             importer.printSummary();
-
-            // Set the initial model and launch
             initialModel = importer;
             launch(args);
-
         } catch (Exception e) {
             System.err.println("Error loading or displaying the model: " + e.getMessage());
             e.printStackTrace();

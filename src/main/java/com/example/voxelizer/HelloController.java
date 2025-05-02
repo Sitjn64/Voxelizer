@@ -36,7 +36,6 @@ public class HelloController implements Initializable {
     private Button voxelizeButton;
     @FXML
     private Spinner<Integer> resolutionSpinner;
-    // ... existing fields ...
 	@FXML
 	private Slider voxelScaleSlider;
     @FXML
@@ -73,7 +72,6 @@ public class HelloController implements Initializable {
 		voxelScaleSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
 			OBJConverter.Voxel.setGlobalSizeMultiplier(newVal.floatValue());
 			if (voxels != null && !voxels.isEmpty()) {
-				// Refresh the current view
 				if (viewModeToggle.isSelected()) {
 					displayCurrentLayer();
 				} else {
@@ -100,18 +98,14 @@ public class HelloController implements Initializable {
     private void display3DView() {
         modelGroup.getChildren().clear();
 
-        // Add lighting
         AmbientLight ambient = new AmbientLight(Color.WHITE);
         PointLight light = new PointLight(Color.WHITE);
         light.setTranslateZ(-1000);
         modelGroup.getChildren().addAll(ambient, light);
-
-        // Display all voxels with a small gap between them
         PhongMaterial material = new PhongMaterial(Color.LIGHTSKYBLUE);
         for (OBJConverter.Voxel voxel : voxels) {
             Box box = voxel.getBox();
             box.setMaterial(material);
-            // Add a small gap between voxels (e.g., 90% of original size)
             box.setScaleX(0.9);
             box.setScaleY(0.9);
             box.setScaleZ(0.9);
@@ -120,7 +114,7 @@ public class HelloController implements Initializable {
     }
 
     private void setupSubScene() {
-        Group root = (Group) modelSubScene.getRoot(); // Get the root from SubScene
+        Group root = (Group) modelSubScene.getRoot();
 
         camera = new PerspectiveCamera(true);
         camera.setTranslateZ(-1500);
@@ -129,8 +123,7 @@ public class HelloController implements Initializable {
 
         modelGroup = new Group();
         root.getChildren().add(modelGroup);
-
-        // Add lighting
+        
         AmbientLight ambient = new AmbientLight(Color.WHITE);
         PointLight light = new PointLight(Color.WHITE);
         light.setTranslateZ(-1000);
@@ -195,21 +188,17 @@ public class HelloController implements Initializable {
 
     private void displayCurrentLayer() {
         modelGroup.getChildren().clear();
-
-        // Add lighting
+        
         AmbientLight ambient = new AmbientLight(Color.WHITE);
         PointLight light = new PointLight(Color.WHITE);
         light.setTranslateZ(-1000);
         modelGroup.getChildren().addAll(ambient, light);
-
-        // Material for previous layers - semi-transparent gray
+        
         PhongMaterial previousMaterial = new PhongMaterial(Color.GRAY);
         previousMaterial.setDiffuseColor(Color.GRAY.deriveColor(0, 1, 1, 0.3)); // 30% opacity
-
-        // Material for current layer - solid light blue
+        
         PhongMaterial currentMaterial = new PhongMaterial(Color.LIGHTSKYBLUE);
 
-        // Display voxels for previous layers
         for (float layer = objConverter.getMinLayer(voxels); layer < currentLayer; layer++) {
             for (OBJConverter.Voxel voxel : objConverter.getLayerVoxels(voxels, layer)) {
                 Box box = new Box(voxel.getBox().getWidth(), voxel.getBox().getHeight(), voxel.getBox().getDepth());
@@ -223,8 +212,7 @@ public class HelloController implements Initializable {
                 modelGroup.getChildren().add(box);
             }
         }
-
-        // Display voxels for current layer
+        
         for (OBJConverter.Voxel voxel : objConverter.getLayerVoxels(voxels, currentLayer)) {
             Box box = new Box(voxel.getBox().getWidth(), voxel.getBox().getHeight(), voxel.getBox().getDepth());
             box.setTranslateX(voxel.getBox().getTranslateX());
@@ -277,8 +265,7 @@ public class HelloController implements Initializable {
         modelGroup.getChildren().clear();
 
         TriangleMesh mesh = new TriangleMesh();
-
-        // Add vertices
+        
         float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
         float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE, maxZ = -Float.MAX_VALUE;
 
@@ -292,12 +279,11 @@ public class HelloController implements Initializable {
             mesh.getPoints().addAll(v.x, v.y, v.z);
         }
 
-        // Center and scale the model
         float centerX = (minX + maxX) / 2;
         float centerY = (minY + maxY) / 2;
         float centerZ = (minZ + maxZ) / 2;
         float maxSize = Math.max(Math.max(maxX - minX, maxY - minY), maxZ - minZ);
-        float scale = 400 / maxSize; // Adjust 400 to change the default size
+        float scale = 400 / maxSize;
 
         for (int i = 0; i < mesh.getPoints().size(); i += 3) {
             mesh.getPoints().set(i, (mesh.getPoints().get(i) - centerX) * scale);

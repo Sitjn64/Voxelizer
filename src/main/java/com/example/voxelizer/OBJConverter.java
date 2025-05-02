@@ -50,7 +50,6 @@ public class OBJConverter {
         List<Voxel> voxels = new ArrayList<>();
         float voxelSize = modelScale;
 
-        // Create voxel grid
         for (OBJImporter.Face face : model.faces) {
             if (face.vertexIndices.length >= 3) {
                 voxelizeFace(face, model.vertices, voxelSize, voxels);
@@ -83,12 +82,10 @@ public class OBJConverter {
     }
 
     private void voxelizeFace(OBJImporter.Face face, List<OBJImporter.Vector3> vertices, float voxelSize, List<Voxel> voxels) {
-        // Get vertices of the face
         OBJImporter.Vector3 v1 = vertices.get(face.vertexIndices[0]);
         OBJImporter.Vector3 v2 = vertices.get(face.vertexIndices[1]);
         OBJImporter.Vector3 v3 = vertices.get(face.vertexIndices[2]);
 
-        // Calculate bounds of the face
         float minX = Math.min(Math.min(v1.x, v2.x), v3.x);
         float minY = Math.min(Math.min(v1.y, v2.y), v3.y);
         float minZ = Math.min(Math.min(v1.z, v2.z), v3.z);
@@ -96,7 +93,6 @@ public class OBJConverter {
         float maxY = Math.max(Math.max(v1.y, v2.y), v3.y);
         float maxZ = Math.max(Math.max(v1.z, v2.z), v3.z);
 
-        // Create voxels for the face
         for (float x = minX; x <= maxX; x += voxelSize) {
             for (float y = minY; y <= maxY; y += voxelSize) {
                 for (float z = minZ; z <= maxZ; z += voxelSize) {
@@ -110,12 +106,10 @@ public class OBJConverter {
     }
 
     private boolean isPointInTriangle(Point3D p, OBJImporter.Vector3 v1, OBJImporter.Vector3 v2, OBJImporter.Vector3 v3) {
-        // Simplified point-in-triangle test
         Point3D a = new Point3D(v1.x, v1.y, v1.z);
         Point3D b = new Point3D(v2.x, v2.y, v2.z);
         Point3D c = new Point3D(v3.x, v3.y, v3.z);
 
-        // Calculate barycentric coordinates
         Point3D vec0 = b.subtract(a);
         Point3D vec1 = c.subtract(a);
         Point3D vec2 = p.subtract(a);
