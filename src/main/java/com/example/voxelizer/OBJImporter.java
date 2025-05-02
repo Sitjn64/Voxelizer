@@ -26,7 +26,7 @@ public class OBJImporter {
             if (vertexIndices == null || vertexIndices.length < 3) {
                 throw new IllegalArgumentException("Face must have at least 3 vertices");
             }
-            this.vertexIndices = vertexIndices.clone(); // Create a defensive copy
+
         }
 
         @Override
