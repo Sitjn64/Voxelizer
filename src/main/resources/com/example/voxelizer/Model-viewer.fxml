@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.SubScene?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Group?>
+
+<BorderPane fx:id="rootPane" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/17"
+            fx:controller="com.example.voxelizer.HelloController">
+    <center>
+        <SubScene fx:id="modelSubScene" width="800" height="800" depthBuffer="true">
+            <root>
+                <Group/>
+            </root>
+        </SubScene>
+    </center>
+    <right>
+        <VBox spacing="10" style="-fx-background-color: #2f2f2f; -fx-padding: 15;">
+            <Button fx:id="loadButton" text="Load OBJ File" maxWidth="Infinity" onAction="#handleLoadFile"/>
+            <Button fx:id="wireframeButton" text="Toggle Wireframe" maxWidth="Infinity" onAction="#handleWireframeToggle"/>
+            
+            <Separator/>
+            
+            <Label text="Voxelization" style="-fx-text-fill: white;"/>
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <Label text="Resolution:" style="-fx-text-fill: white;"/>
+                <Spinner fx:id="resolutionSpinner" prefWidth="80"/>
+            </HBox>
+            <Button fx:id="voxelizeButton" text="Voxelize Model" maxWidth="Infinity" onAction="#handleVoxelize"/>
+            
+            <Separator/>
+            
+            <Label text="Layer" style="-fx-text-fill: white;"/>
+            <Slider fx:id="layerSlider" showTickLabels="true" showTickMarks="true"/>
+            <Label text="Zoom" style="-fx-text-fill: white;"/>
+            <Slider fx:id="zoomSlider" min="0.1" max="2" value="1" showTickLabels="true"/>
+            <Label text="Voxel Size" style="-fx-text-fill: white;"/>
+            <Slider fx:id="voxelScaleSlider" showTickLabels="true" showTickMarks="true"/>
+            <Button fx:id="resetButton" text="Reset View" maxWidth="Infinity" onAction="#handleResetView"/>
+            <ToggleButton fx:id="viewModeToggle" text="Toggle View Mode" maxWidth="Infinity"/>
+        </VBox>
+    </right>
+</BorderPane>
