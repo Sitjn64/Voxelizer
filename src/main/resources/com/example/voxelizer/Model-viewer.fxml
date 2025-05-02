@@ -35,7 +35,7 @@
             <Label text="Layer" style="-fx-text-fill: white;"/>
             <Slider fx:id="layerSlider" showTickLabels="true" showTickMarks="true"/>
             <Label text="Zoom" style="-fx-text-fill: white;"/>
-            <Slider fx:id="zoomSlider" min="0.1" max="2" value="1" showTickLabels="true"/>
+            <Slider fx:id="zoomSlider" min="0.1" max="100" value="1" showTickLabels="true"/>
             <Label text="Voxel Size" style="-fx-text-fill: white;"/>
             <Slider fx:id="voxelScaleSlider" showTickLabels="true" showTickMarks="true"/>
             <Button fx:id="resetButton" text="Reset View" maxWidth="Infinity" onAction="#handleResetView"/>

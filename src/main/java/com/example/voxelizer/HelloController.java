@@ -71,12 +71,13 @@ public class HelloController implements Initializable {
 		voxelScaleSlider.setMax(3.0);
 		voxelScaleSlider.setValue(1.0);
 		voxelScaleSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+			OBJConverter.Voxel.setGlobalSizeMultiplier(newVal.floatValue());
 			if (voxels != null && !voxels.isEmpty()) {
-				for (OBJConverter.Voxel voxel : voxels) {
-					Box box = voxel.getBox();
-					box.setScaleX(newVal.doubleValue());
-					box.setScaleY(newVal.doubleValue());
-					box.setScaleZ(newVal.doubleValue());
+				// Refresh the current view
+				if (viewModeToggle.isSelected()) {
+					displayCurrentLayer();
+				} else {
+					display3DView();
 				}
 			}
 		});
@@ -124,7 +125,7 @@ public class HelloController implements Initializable {
         camera = new PerspectiveCamera(true);
         camera.setTranslateZ(-1500);
         camera.setNearClip(0.1);
-        camera.setFarClip(5000.0);
+        camera.setFarClip(2000000.0);
 
         modelGroup = new Group();
         root.getChildren().add(modelGroup);
@@ -211,15 +212,29 @@ public class HelloController implements Initializable {
         // Display voxels for previous layers
         for (float layer = objConverter.getMinLayer(voxels); layer < currentLayer; layer++) {
             for (OBJConverter.Voxel voxel : objConverter.getLayerVoxels(voxels, layer)) {
-                voxel.getBox().setMaterial(previousMaterial);
-                modelGroup.getChildren().add(voxel.getBox());
+                Box box = new Box(voxel.getBox().getWidth(), voxel.getBox().getHeight(), voxel.getBox().getDepth());
+                box.setTranslateX(voxel.getBox().getTranslateX());
+                box.setTranslateY(voxel.getBox().getTranslateY());
+                box.setTranslateZ(voxel.getBox().getTranslateZ());
+                box.setMaterial(previousMaterial);
+                box.setScaleX(0.9);
+                box.setScaleY(0.9);
+                box.setScaleZ(0.9);
+                modelGroup.getChildren().add(box);
             }
         }
 
         // Display voxels for current layer
         for (OBJConverter.Voxel voxel : objConverter.getLayerVoxels(voxels, currentLayer)) {
-            voxel.getBox().setMaterial(currentMaterial);
-            modelGroup.getChildren().add(voxel.getBox());
+            Box box = new Box(voxel.getBox().getWidth(), voxel.getBox().getHeight(), voxel.getBox().getDepth());
+            box.setTranslateX(voxel.getBox().getTranslateX());
+            box.setTranslateY(voxel.getBox().getTranslateY());
+            box.setTranslateZ(voxel.getBox().getTranslateZ());
+            box.setMaterial(currentMaterial);
+            box.setScaleX(0.9);
+            box.setScaleY(0.9);
+            box.setScaleZ(0.9);
+            modelGroup.getChildren().add(box);
         }
     }
 
@@ -310,4 +325,8 @@ public class HelloController implements Initializable {
 
         modelGroup.getChildren().add(meshView);
     }
+	public void loadModel(OBJImporter model) {
+		this.importer = model;
+		displayModel();
+	}
 }
